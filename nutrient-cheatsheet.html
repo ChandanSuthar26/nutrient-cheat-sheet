@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nutrient Cheat Sheet</title>
+<style>
+  @font-face {
+    font-family: 'Aptos';
+    src: local('Aptos');
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1420;
+    --bg2: #161d2e;
+    --card: #1b2335;
+    --card-hover: #222c44;
+    --text: #e8ecf5;
+    --muted: #93a0bb;
+    --accent: #5fd0a8;
+    --accent2: #f2b84b;
+    --border: #2a3450;
+    --macro: #5fa8f2;
+    --fiber: #a080f0;
+    --micro: #f2b84b;
+    --fat: #f0718a;
+    --lipid: #5fd0a8;
+  }
+  body.light {
+    --bg: #f4f6fb;
+    --bg2: #ffffff;
+    --card: #ffffff;
+    --card-hover: #eef1fa;
+    --text: #1a2133;
+    --muted: #596padding;
+    --muted: #5a6680;
+    --border: #e1e6f0;
+  }
+  html, body {
+    font-family: 'Aptos', 'Segoe UI', 'Calibri', sans-serif;
+    background: radial-gradient(circle at top left, var(--bg2), var(--bg));
+    color: var(--text);
+    min-height: 100vh;
+    transition: background .3s, color .3s;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    background: rgba(15,20,32,0.85);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+  }
+  body.light header { background: rgba(255,255,255,0.85); }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .logo {
+    font-size: 26px;
+  }
+  .brand h1 { font-size: 21px; font-weight: 700; letter-spacing: .2px; }
+  .brand p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #search {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+    width: 220px;
+    outline: none;
+  }
+  #search:focus { border-color: var(--accent); }
+  .pill-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .pill-btn:hover { background: var(--card-hover); }
+  .pill-btn.active { background: var(--accent); color: #08261b; border-color: var(--accent); font-weight: 600; }
+
+  main { padding: 24px 28px 60px; max-width: 1400px; margin: 0 auto; }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .filters button {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .filters button:hover { color: var(--text); border-color: var(--accent); }
+  .filters button.active { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; }
+
+  .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin: 28px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    cursor: pointer;
+    min-height: 170px;
+    perspective: 1000px;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    border-color: var(--cat-color, var(--accent));
+  }
+  /* card-inner's height comes from the front face (position: relative, natural height).
+     The back face is absolutely positioned to overlay it, so flipping never clips content. */
+  .card-inner {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    transition: transform .45s;
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner { transform: rotateY(180deg); }
+  .face {
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .face.front {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  .face.back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    width: fit-content;
+    color: #0c1120;
+  }
+  .nutrient-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .job {
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.45;
+    flex: 1;
+  }
+  .job ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+  .job li {
+    margin-bottom: 3px;
+  }
+  .flip-hint-global {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 18px;
+    opacity: .85;
+    text-align: center;
+  }
+  .mnemonic {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 6px;
+    line-height: 1.5;
+  }
+  .mnemonic .icon { font-size: 31px; display: block; margin-bottom: 10px; }
+
+  .sources-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cat-color, var(--accent));
+    font-weight: 700;
+    margin: 4px 0 8px;
+  }
+  .sources-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--muted);
+    line-height: 1.5;
+    flex: 1;
+  }
+  .sources-list li { margin-bottom: 3px; }
+
+  .priority-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 12px;
+    background: var(--accent2);
+    color: #241a00;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 20px;
+  }
+
+  .toolbar-row { display: flex; gap: 10px; align-items: center; }
+
+  @media (max-width: 640px) {
+    header { padding: 14px 16px; }
+    main { padding: 16px; }
+    #search { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">🥗</div>
+    <div>
+      <h1>Nutrient Cheat Sheet</h1>
+      <p>Nutrient → Primary job in the body</p>
+    </div>
+  </div>
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search a nutrient or job...">
+    <button class="pill-btn" id="priorityToggle">⭐ Top 8 only</button>
+    <button class="pill-btn" id="quizToggle">🧠 Quiz mode</button>
+    <button class="pill-btn" id="flipAllToggle">🥘 Show all food sources</button>
+    <button class="pill-btn" id="themeToggle">☀️ Light</button>
+  </div>
+</header>
+
+<main>
+  <div class="flip-hint-global">↻ Tap / click any card to flip it and reveal major food sources</div>
+  <div class="filters" id="filters"></div>
+  <div id="sections"></div>
+</main>
+
+<footer>Built from your Microsoft Copilot nutrition notes.</footer>
+
+<script>
+const DATA = [
+  { name: "Protein", cat: "Macronutrients", color: "var(--macro)", icon: "🧱", job: ["Build and maintain the body"], points: ["Muscles", "Skin, hair, nails", "Enzymes", "Some hormones", "Antibodies (immune system)", "Gut lining", "General tissue repair"], sources: ["Lentils, chickpeas, beans", "Paneer, Greek yogurt, milk", "Tofu, soy chunks/edamame", "Nuts and seeds, quinoa"], priority: true },
+  { name: "Carbohydrates", cat: "Macronutrients", color: "var(--macro)", icon: "⛽", job: ["Energy"], points: ["Brain energy", "Muscle activity", "Daily movement", "Exercise"], sources: ["Rice, wheat, oats", "Potatoes, sweet potatoes", "Fruits", "Whole grains, millets"], priority: false },
+  { name: "Fat", cat: "Macronutrients", color: "var(--macro)", icon: "🛢️", job: ["Long-term energy + cell structure"], points: ["Energy storage", "Cell membranes", "Hormone production", "Vitamin absorption (A, D, E, K)"], sources: ["Ghee, butter, olive oil", "Nuts, peanuts, seeds", "Avocado", "Full-fat dairy"], priority: false },
+  { name: "Fiber", cat: "Fiber", color: "var(--fiber)", icon: "🦠", job: ["Feed gut bacteria and support digestion"], points: ["Gut health", "Bowel regularity", "Satiety", "Prebiotic effects", "Slower digestion"], sources: ["Whole grains, oats", "Legumes (lentils, beans, chickpeas)", "Fruits with skin, vegetables", "Nuts and seeds"], priority: true },
+  { name: "Iron", cat: "Micronutrients", color: "var(--micro)", icon: "🚚", job: ["Move oxygen around the body"], points: ["Hemoglobin", "Oxygen transport", "Deficiency: fatigue, weakness"], sources: ["Spinach, other leafy greens", "Lentils, chickpeas, soybeans", "Jaggery, dates", "Pumpkin seeds (pair with vitamin C to absorb better)"], priority: true },
+  { name: "Ferritin", cat: "Micronutrients", color: "var(--micro)", icon: "🏬", job: ["Store iron"], points: ["Not a nutrient — a storage protein for iron"], sources: ["Not eaten directly — rises as you eat enough iron-rich foods"], priority: false },
+  { name: "Vitamin B12", cat: "Micronutrients", color: "var(--micro)", icon: "⚡", job: ["Nerve, blood, and DNA support"], points: ["DNA synthesis", "Nerve function", "Red blood cell production", "Deficiency: fatigue, numbness, neurological symptoms"], sources: ["Milk, curd, paneer, cheese", "Fortified foods / nutritional yeast", "Supplements (common for vegetarians)"], priority: true },
+  { name: "Folate (B9)", cat: "Micronutrients", color: "var(--micro)", icon: "🧬", job: ["Make new cells"], points: ["DNA synthesis", "Cell division", "Red blood cell production"], sources: ["Leafy greens (spinach, methi)", "Lentils, chickpeas, beans", "Citrus fruits", "Seeds, broccoli"], priority: true },
+  { name: "Vitamin D", cat: "Micronutrients", color: "var(--micro)", icon: "🦴", job: ["Help absorb and use calcium"], points: ["Calcium absorption", "Bone health", "Immune function"], sources: ["Sunlight exposure (main source)", "Fortified milk", "Mushrooms (UV-exposed)", "Supplements"], priority: true },
+  { name: "Calcium", cat: "Micronutrients", color: "var(--micro)", icon: "💪", job: ["Skeleton and muscle work"], points: ["Bones", "Teeth", "Muscle contraction", "Nerve signaling"], sources: ["Milk, curd, paneer, cheese", "Sesame seeds, til", "Ragi (finger millet)", "Leafy greens"], priority: true },
+  { name: "Potassium", cat: "Micronutrients", color: "var(--micro)", icon: "🔌", job: ["Electrical wiring"], points: ["Nerves", "Muscles", "Fluid balance"], sources: ["Bananas", "Potatoes, sweet potatoes", "Coconut water", "Spinach, beans"], priority: false },
+  { name: "Magnesium", cat: "Micronutrients", color: "var(--micro)", icon: "⚙️", job: ["Cellular machinery helper"], points: ["Muscles", "Nerves", "Energy metabolism"], sources: ["Nuts (almonds, cashews)", "Seeds (pumpkin, sesame)", "Whole grains", "Dark leafy greens, dark chocolate"], priority: false },
+  { name: "Zinc", cat: "Micronutrients", color: "var(--micro)", icon: "🛡️", job: ["Immune support"], points: ["Immunity", "Wound healing"], sources: ["Pumpkin seeds, sesame seeds", "Chickpeas, lentils", "Nuts, cashews", "Dairy, whole grains"], priority: false },
+  { name: "Choline", cat: "Micronutrients", color: "var(--micro)", icon: "🧠", job: ["Brain and cell structure"], points: ["Cell membranes", "Brain signaling", "Liver function"], sources: ["Soybeans, tofu", "Peanuts", "Milk, cruciferous vegetables"], priority: false },
+  { name: "Omega-3", cat: "Special Fats", color: "var(--fat)", icon: "🐟", job: ["Brain-friendly fat"], points: ["Cell membranes", "Brain function", "Nervous system", "Sources: flaxseed, chia, walnuts"], sources: ["Flaxseeds (ground)", "Chia seeds", "Walnuts", "Soybeans / soy oil"], priority: true },
+  { name: "Cholesterol", cat: "Cholesterol & Markers", color: "var(--lipid)", icon: "🏗️", job: ["Construction material"], points: ["Cell membranes", "Hormones", "Vitamin D production", "Body component / lab marker, not a nutrient to eat more of"], sources: ["Made by your own liver — not something to actively eat more of", "Dietary cholesterol mainly from dairy, ghee (if consumed)"], priority: false },
+  { name: "LDL", cat: "Cholesterol & Markers", color: "var(--lipid)", icon: "🚛", job: ["Transport cholesterol"], points: ["Carries cholesterol through the bloodstream"], sources: ["Not a food — a blood marker; raised by saturated fat, trans fat, sugar-heavy diets"], priority: false },
+  { name: "HDL", cat: "Cholesterol & Markers", color: "var(--lipid)", icon: "♻️", job: ["Move cholesterol back for recycling"], points: ["Returns cholesterol to the liver for recycling"], sources: ["Not a food — a blood marker; raised by exercise, nuts, olive oil, omega-3s"], priority: false },
+  { name: "ApoB", cat: "Cholesterol & Markers", color: "var(--lipid)", icon: "🛣️", job: ["Number of plaque-forming particles"], points: ["Reflects count of potentially plaque-forming particles in the blood"], sources: ["Not a food — a lab marker; improved by lowering LDL and refined carbs/sugar"], priority: false },
+];
+
+const CATEGORIES = ["All", "Macronutrients", "Fiber", "Micronutrients", "Special Fats", "Cholesterol & Markers"];
+let activeCat = "All";
+let priorityOnly = false;
+let quizMode = false;
+let flipAll = false;
+let searchTerm = "";
+
+const filtersEl = document.getElementById('filters');
+const sectionsEl = document.getElementById('sections');
+
+CATEGORIES.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.textContent = cat;
+  if (cat === activeCat) btn.classList.add('active');
+  btn.onclick = () => { activeCat = cat; render(); };
+  btn.dataset.cat = cat;
+  filtersEl.appendChild(btn);
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  searchTerm = e.target.value.toLowerCase();
+  render();
+});
+
+document.getElementById('priorityToggle').addEventListener('click', e => {
+  priorityOnly = !priorityOnly;
+  e.target.classList.toggle('active', priorityOnly);
+  render();
+});
+
+document.getElementById('quizToggle').addEventListener('click', e => {
+  quizMode = !quizMode;
+  e.target.classList.toggle('active', quizMode);
+  e.target.textContent = quizMode ? "🧠 Quiz mode (on)" : "🧠 Quiz mode";
+  render();
+});
+
+document.getElementById('flipAllToggle').addEventListener('click', e => {
+  flipAll = !flipAll;
+  e.target.classList.toggle('active', flipAll);
+  e.target.textContent = flipAll ? "🥘 Hide all food sources" : "🥘 Show all food sources";
+  render();
+});
+
+document.getElementById('themeToggle').addEventListener('click', e => {
+  document.body.classList.toggle('light');
+  const isLight = document.body.classList.contains('light');
+  e.target.textContent = isLight ? "🌙 Dark" : "☀️ Light";
+});
+
+function render() {
+  Array.from(filtersEl.children).forEach(b => b.classList.toggle('active', b.dataset.cat === activeCat));
+
+  let items = DATA.filter(d => {
+    const matchesCat = activeCat === "All" || d.cat === activeCat;
+    const matchesSearch = !searchTerm || d.name.toLowerCase().includes(searchTerm) || d.job.join(' ').toLowerCase().includes(searchTerm) || d.points.join(' ').toLowerCase().includes(searchTerm) || d.sources.join(' ').toLowerCase().includes(searchTerm);
+    const matchesPriority = !priorityOnly || d.priority;
+    return matchesCat && matchesSearch && matchesPriority;
+  });
+
+  const grouped = {};
+  items.forEach(d => {
+    if (!grouped[d.cat]) grouped[d.cat] = [];
+    grouped[d.cat].push(d);
+  });
+
+  sectionsEl.innerHTML = '';
+
+  if (items.length === 0) {
+    sectionsEl.innerHTML = '<p style="color:var(--muted);padding:40px 0;text-align:center;">No nutrients match. Try a different search or filter.</p>';
+    return;
+  }
+
+  Object.keys(grouped).forEach(catName => {
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = catName;
+    sectionsEl.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+
+    grouped[catName].forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--cat-color', d.color);
+
+      const bulletList = '<ul>' + d.points.map(p => `<li>${p}</li>`).join('') + '</ul>';
+      const frontJob = quizMode
+        ? '<span style="opacity:.5;">Click to reveal the job →</span>'
+        : `<strong>${d.job[0]}</strong>${bulletList}`;
+
+      card.innerHTML = `
+        ${d.priority ? '<div class="priority-badge">TOP 8</div>' : ''}
+        <div class="card-inner">
+          <div class="face front">
+            <span class="tag" style="background:${d.color}">${d.cat}</span>
+            <div class="nutrient-name">${d.icon} ${d.name}</div>
+            <div class="job">${frontJob}</div>
+          </div>
+          <div class="face back">
+            <span class="tag" style="background:${d.color}">${d.cat}</span>
+            <div class="nutrient-name">${d.icon} ${d.name}</div>
+            <div class="sources-label">Food Sources</div>
+            <ul class="sources-list">${d.sources.map(s => `<li>${s}</li>`).join('')}</ul>
+          </div>
+        </div>
+      `;
+
+      if (flipAll) card.classList.add('flipped');
+
+      card.addEventListener('click', () => {
+        if (quizMode && !card.classList.contains('revealed')) {
+          const bulletList2 = '<ul>' + d.points.map(p => `<li>${p}</li>`).join('') + '</ul>';
+          card.querySelector('.job').innerHTML = `<strong>${d.job[0]}</strong>${bulletList2}`;
+          card.classList.add('revealed');
+          return;
+        }
+        card.classList.toggle('flipped');
+      });
+
+      grid.appendChild(card);
+    });
+
+    sectionsEl.appendChild(grid);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
